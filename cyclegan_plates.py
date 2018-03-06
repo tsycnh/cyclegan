@@ -240,8 +240,7 @@ class CycleGAN():
         cnt = 0
         for i in range(r):
             for j in range(c):
-                tmp = np.squeeze(gen_imgs[cnt],-1)
-                axs[i,j].imshow(np.squeeze(gen_imgs[cnt],-1),cmap='gray',norm=NoNorm())
+                axs[i,j].imshow(np.squeeze(gen_imgs[cnt],-1),cmap='gray',norm=NoNorm())#squeeze减少不必要维度，NoNorm去除默认的归一化
                 axs[i, j].set_title(titles[j])
                 axs[i,j].axis('off')
                 cnt += 1

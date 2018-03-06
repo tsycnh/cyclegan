@@ -39,4 +39,3 @@ class DataLoader():
 
     def imread(self, path):
         return scipy.misc.imread(path, mode='L')
-        # return img
