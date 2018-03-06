@@ -1,4 +1,5 @@
 import scipy
+import scipy.misc
 from glob import glob
 import numpy as np
 
@@ -24,7 +25,8 @@ class DataLoader():
             else:
                 img = scipy.misc.imresize(img, self.img_res)
             imgs.append(img)
-
+        if len(imgs[0].shape) <3:
+            imgs = np.expand_dims(imgs,axis=-1)
         imgs = np.array(imgs)/127.5 - 1.
 
         return imgs
@@ -36,4 +38,5 @@ class DataLoader():
         return img[np.newaxis, :, :, :]
 
     def imread(self, path):
-        return scipy.misc.imread(path, mode='RGB').astype(np.float)
+        return scipy.misc.imread(path, mode='L')
+        # return img

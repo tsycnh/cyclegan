@@ -15,13 +15,15 @@ import sys
 from data_loader import DataLoader
 import numpy as np
 import os
+from matplotlib.colors import NoNorm
+
 
 class CycleGAN():
     def __init__(self):
         # Input shape
         self.img_rows = 128
         self.img_cols = 128
-        self.channels = 3
+        self.channels = 1
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
 
         # Configure data loader
@@ -208,6 +210,7 @@ class CycleGAN():
             # If at save interval => save generated image samples
             if epoch % save_interval == 0:
                 self.save_imgs(epoch)
+                self.g_AB.save('./saved_model/model_epoch_'+str(epoch)+'.h5')
 
     def save_imgs(self, epoch):
         os.makedirs('images/%s' % self.dataset_name, exist_ok=True)
@@ -237,7 +240,8 @@ class CycleGAN():
         cnt = 0
         for i in range(r):
             for j in range(c):
-                axs[i,j].imshow(gen_imgs[cnt])
+                tmp = np.squeeze(gen_imgs[cnt],-1)
+                axs[i,j].imshow(np.squeeze(gen_imgs[cnt],-1),cmap='gray',norm=NoNorm())
                 axs[i, j].set_title(titles[j])
                 axs[i,j].axis('off')
                 cnt += 1
@@ -247,4 +251,4 @@ class CycleGAN():
 
 if __name__ == '__main__':
     gan = CycleGAN()
-    gan.train(epochs=30000, batch_size=2, save_interval=200)
+    gan.train(epochs=30001, batch_size=2, save_interval=200)
