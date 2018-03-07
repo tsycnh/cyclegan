@@ -16,8 +16,12 @@ from data_loader import DataLoader
 import numpy as np
 import os
 from matplotlib.colors import NoNorm
-
-
+from keras.models import model_from_json
+import shutil
+def create_new_empty_dir(dir):
+    if os.path.exists(dir):
+        shutil.rmtree(dir)
+    os.makedirs(dir)
 class CycleGAN():
     def __init__(self):
         # Input shape
@@ -90,7 +94,7 @@ class CycleGAN():
         self.combined.compile(loss=['mse', 'mse', 'mae', 'mae', 'mae', 'mae'],
                                     loss_weights=[1, 1, self.lambda_id, self.lambda_id,self.lambda_cycle, self.lambda_cycle],
                                     optimizer=optimizer)
-
+        self.save_structure()
     def build_generator(self):
         """U-Net Generator"""
 
@@ -209,9 +213,16 @@ class CycleGAN():
 
             # If at save interval => save generated image samples
             if epoch % save_interval == 0:
+                self.epoch = epoch
                 self.save_imgs(epoch)
                 self.g_AB.save('./saved_model/model_epoch_'+str(epoch)+'.h5')
-
+                create_new_empty_dir('predict_images/epoch_%d/'%(self.epoch))
+                self.predicts_from_A_to_B()
+    def save_structure(self):
+        g_AB_json_string = self.g_AB.to_json()
+        fh = open('./saved_model/g_AB_model.json', mode='w')
+        fh.write(g_AB_json_string)
+        fh.close()
     def save_imgs(self, epoch):
         os.makedirs('images/%s' % self.dataset_name, exist_ok=True)
         r, c = 2, 3
@@ -247,7 +258,37 @@ class CycleGAN():
         fig.savefig("images/%s/%d.png" % (self.dataset_name, epoch))
         plt.close()
 
+    def predicts_from_A_to_B(self,model_path=None):
+        np.random.seed(0)
+        if model_path != None:
+            self.g_AB.load_weights(model_path)
+        imgs_A = self.data_loader.load_data(domain='A',batch_size=100)
+        imgs_B = self.data_loader.load_data(domain='B',batch_size=100)
+        fake_B = self.g_AB.predict(imgs_A)
+        r, c = 5, 3 # 5行2列
+        candidates = []
+        for ai in range(0,len(imgs_A)):
+            candidates.append(imgs_A[ai]*0.5+0.5)
+            candidates.append(fake_B[ai]*0.5+0.5)
+            candidates.append(imgs_B[ai]*0.5+0.5)
+            if (ai+1)%10==0:
+                cnt = 0
+                titles = ['Origin A', 'Translation B','Origin B']
+                # candidates = np.concatenate(candidates)
+                # candidates = 0.5 * candidates + 0.5
+                fig,axs = plt.subplots(nrows=r,ncols=c,figsize=(10,10))
+                for ti,title in enumerate(titles):
+                    axs[0, ti].set_title(title)
 
+                for i in range(r):
+                    for j in range(c):
+                        axs[i, j].imshow(np.squeeze(candidates[cnt], -1), cmap='gray',
+                                         norm=NoNorm())  # squeeze减少不必要维度，NoNorm去除默认的归一化
+                        axs[i, j].axis('off')
+                        cnt += 1
+                fig.savefig('predict_images/epoch_%d/%d.png'%(self.epoch,ai+1))
+                candidates = []
 if __name__ == '__main__':
     gan = CycleGAN()
-    gan.train(epochs=30001, batch_size=2, save_interval=200)
+    gan.train(epochs=10001, batch_size=2, save_interval=100)
+    # gan.predicts_from_A_to_B('good_model/model_epoch_1800.h5')
