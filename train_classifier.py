@@ -169,7 +169,7 @@ def lr_sch(epoch):
         return 1e-5
 lr_scheduler = LearningRateScheduler(lr_sch)
 checkpoint = ModelCheckpoint(filepath='./neuData_resnet_ckpt.h5',monitor='val_acc',
-                             verbose=1,save_best_only=True)
+                             verbose=1,save_best_only=False)
 lr_reducer = ReduceLROnPlateau(monitor='val_acc',factor=0.2,patience=5,
                                mode='max',min_lr=1e-3)
 callbacks = [tb,checkpoint,lr_scheduler,lr_reducer]
