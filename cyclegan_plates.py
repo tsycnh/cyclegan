@@ -10,6 +10,7 @@ from keras.layers.convolutional import UpSampling2D, Conv2D
 from keras.models import Sequential, Model
 from keras.optimizers import Adam
 from keras.callbacks import TensorBoard
+from keras import backend as K
 
 import datetime,time
 import matplotlib.pyplot as plt
@@ -52,10 +53,10 @@ class CycleGAN():
 
         # Loss weights
         self.lambda_cycle = 10.0  # Cycle-consistency loss
-        self.lambda_id = 0.0  # Identity loss
+        self.lambda_id = 5.0  # Identity loss
 
         optimizer = Adam(0.0002, 0.5)
-        optimizer = keras.optimizers.RMSprop()
+        # optimizer = keras.optimizers.RMSprop()
         # Build and compile the discriminators
         # 两个判别器，A和B
         self.d_A = self.build_discriminator()
@@ -97,7 +98,7 @@ class CycleGAN():
         valid_B = self.d_B(fake_B)
 
         self.combined = Model([img_A, img_B], [valid_A, valid_B, fake_B, fake_A, reconstr_A, reconstr_B])
-        self.combined.compile(loss=['mse', 'mse', 'mae', 'mae', 'mae', 'mae'],
+        self.combined.compile(loss=['mse', 'mse', self.rou_loss, self.rou_loss, 'mae', 'mae'],
                               loss_weights=[1, 1, self.lambda_id, self.lambda_id, self.lambda_cycle, self.lambda_cycle],
                               optimizer=optimizer)
 
@@ -112,6 +113,22 @@ class CycleGAN():
         self.g_losses = []
         self.d_losses = []
         # plot_model(self.d_A, to_file='model_d_A.png')
+    def rou_loss(self,imgM,imgN):
+        #计算相对系数
+        def calc_variance(X,X_mean):
+            return K.sqrt(K.sum(K.square(X-X_mean)))
+        M_mean = K.mean(imgM)
+        print('M_mean shape: ',M_mean.shape)
+        N_mean = K.mean(imgN)
+        print('N_mean shape: ', N_mean.shape)
+        # M_count = imgM.shape[1]*imgM.shape[2]*imgM.shape[3]
+        # N_count = imgN.shape[1]*imgN.shape[2]*imgN.shape[3]
+
+        variance_M = calc_variance(imgM,M_mean)
+        variance_N = calc_variance(imgN,N_mean)
+        co_variance_MN = K.sqrt(K.sum((imgM-M_mean)*(imgN-N_mean)))
+        rou = co_variance_MN/(variance_M*variance_N)
+        return rou
 
     def build_generator(self):
         """U-Net Generator"""
@@ -226,7 +243,8 @@ class CycleGAN():
 
             g_loss = self.combined.train_on_batch([imgs_A, imgs_B], [valid, valid, imgs_A, imgs_B, imgs_A, imgs_B])
             print('g loss:', g_loss)
-            self.g_losses.append(float(g_loss[1]+g_loss[2]+g_loss[5]+g_loss[6]))
+            # self.g_losses.append(float(g_loss[1]+g_loss[2]+g_loss[5]+g_loss[6]))
+            self.g_losses.append(float(g_loss[0]))
             elapsed_time = datetime.datetime.now() - start_time
             # Plot the progress
             print("%d time: %s" % (epoch, elapsed_time))
@@ -290,15 +308,17 @@ class CycleGAN():
         imgs_A = self.data_loader.load_data(domain='A', batch_size=100)
         imgs_B = self.data_loader.load_data(domain='B', batch_size=100)
         fake_B = self.g_AB.predict(imgs_A)
-        r, c = 5, 3  # 5行2列
+        rec_A  = self.g_BA.predict(fake_B)
+        r, c = 5, 4  # 5行4列
         candidates = []
         for ai in range(0, len(imgs_A)):
             candidates.append(imgs_A[ai] * 0.5 + 0.5)
             candidates.append(fake_B[ai] * 0.5 + 0.5)
+            candidates.append(rec_A[ai] * 0.5 + 0.5)
             candidates.append(imgs_B[ai] * 0.5 + 0.5)
             if (ai + 1) % 10 == 0:
                 cnt = 0
-                titles = ['Origin A', 'Translation B', 'Origin B']
+                titles = ['Origin A', 'Translation B','Rec A', 'Origin B']
                 # candidates = np.concatenate(candidates)
                 # candidates = 0.5 * candidates + 0.5
                 fig, axs = plt.subplots(nrows=r, ncols=c, figsize=(10, 10))
@@ -353,4 +373,4 @@ class CycleGAN():
         file.close()
 if __name__ == '__main__':
     gan = CycleGAN()
-    gan.train(epochs=10001, batch_size=2, save_interval=100)
+    gan.train(epochs=10001, batch_size=2, save_interval=50)

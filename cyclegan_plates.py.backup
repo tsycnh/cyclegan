@@ -1,3 +1,4 @@
+# 2018年03月25日之前做的实验版，原版CycleGAN
 from __future__ import print_function, division
 import scipy
 
@@ -22,7 +23,7 @@ from keras.models import model_from_json
 import shutil
 import matplotlib.pyplot as plt
 import json
-
+import cv2
 def create_new_empty_dir(dir):
     if os.path.exists(dir):
         shutil.rmtree(dir)
@@ -241,8 +242,6 @@ class CycleGAN():
             self.save_loss_img(epoch)
             self.save_loss()
 
-
-
     def save_structure(self):
         g_AB_json_string = self.g_AB.to_json()
         fh = open(self.saved_model_dir+'/g_AB_model.json', mode='w')
@@ -315,35 +314,20 @@ class CycleGAN():
                         cnt += 1
                 fig.savefig(self.predicts_dir+'/epoch_%d/%d.png' % (self.epoch, ai + 1))
                 candidates = []
-    def translate(self, model_path=None):
-        np.random.seed(0)
+
+    def translate(self, model_path=None,total_num = 1):
+        # np.random.seed(0)
         if model_path != None:
             self.g_AB.load_weights(model_path)
-        imgs_A = self.data_loader.load_data(domain='A', batch_size=1500)
+        imgs_A = self.data_loader.load_data(domain='A', batch_size=total_num)
         fake_B = self.g_AB.predict(imgs_A)
-        candidates = []
         translation_dir = './translation'
         create_new_empty_dir(translation_dir)
-        for ai in range(0, len(imgs_A)):
-            candidates.append(imgs_A[ai] * 0.5 + 0.5)
-            candidates.append(fake_B[ai] * 0.5 + 0.5)
-            if (ai + 1) % 10 == 0:
-                cnt = 0
-                titles = ['Origin A', 'Translation B', 'Origin B']
-                # candidates = np.concatenate(candidates)
-                # candidates = 0.5 * candidates + 0.5
-                fig, axs = plt.subplots(nrows=r, ncols=c, figsize=(10, 10))
-                for ti, title in enumerate(titles):
-                    axs[0, ti].set_title(title)
-
-                for i in range(r):
-                    for j in range(c):
-                        axs[i, j].imshow(np.squeeze(candidates[cnt], -1), cmap='gray',
-                                         norm=NoNorm())  # squeeze减少不必要维度，NoNorm去除默认的归一化
-                        axs[i, j].axis('off')
-                        cnt += 1
-                fig.savefig(translation_dir+'/%d.png' % (ai + 1))
-                candidates = []
+        names = self.data_loader.get_imgs_name()
+        for i,img in enumerate(fake_B):
+            print('img:',i)
+            img = (img+1)*127.5
+            cv2.imwrite(translation_dir+'/'+names[i],img)
 
     def save_loss_img(self,epoch):
         print('start show loss')
@@ -369,7 +353,5 @@ class CycleGAN():
         file.write(str)
         file.close()
 if __name__ == '__main__':
-    # os.environ['CUDA_VISIBLE_DEVICES'] = '1'
     gan = CycleGAN()
     gan.train(epochs=10001, batch_size=2, save_interval=100)
-    # gan.predicts_from_A_to_B('good_model/model_epoch_1800.h5')
