@@ -31,7 +31,7 @@ def create_new_empty_dir(dir):
 
 
 class CycleGAN():
-    def __init__(self):
+    def __init__(self,dataset_name):
         # Input shape
         self.img_rows = 128
         self.img_cols = 128
@@ -39,7 +39,7 @@ class CycleGAN():
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
 
         # Configure data loader
-        self.dataset_name = 'plates'
+        self.dataset_name = dataset_name#'/plates/单独训练集/Sc'
         self.data_loader = DataLoader(dataset_name=self.dataset_name,
                                       img_res=(self.img_rows, self.img_cols))
 
@@ -52,10 +52,10 @@ class CycleGAN():
         self.df = 64
 
         # Loss weights
-        self.lambda_cycle = 10.0  # Cycle-consistency loss
-        self.lambda_id = 5.0  # Identity loss
+        self.lambda_cycle = 5.0  # Cycle-consistency loss
+        self.lambda_id = 1  # Identity loss
 
-        optimizer = Adam(0.0002, 0.5)
+        optimizer = Adam(0.0001, 0.5)
         # optimizer = keras.optimizers.RMSprop()
         # Build and compile the discriminators
         # 两个判别器，A和B
@@ -98,7 +98,7 @@ class CycleGAN():
         valid_B = self.d_B(fake_B)
 
         self.combined = Model([img_A, img_B], [valid_A, valid_B, fake_B, fake_A, reconstr_A, reconstr_B])
-        self.combined.compile(loss=['mse', 'mse', self.rou_loss, self.rou_loss, 'mae', 'mae'],
+        self.combined.compile(loss=['mse', 'mse', 'kld', 'kld', 'mae', 'mae'],
                               loss_weights=[1, 1, self.lambda_id, self.lambda_id, self.lambda_cycle, self.lambda_cycle],
                               optimizer=optimizer)
 
@@ -372,5 +372,5 @@ class CycleGAN():
         file.write(str)
         file.close()
 if __name__ == '__main__':
-    gan = CycleGAN()
-    gan.train(epochs=10001, batch_size=2, save_interval=50)
+    gan = CycleGAN('/plates/单独训练集/Sc')
+    gan.train(epochs=5001, batch_size=2, save_interval=100)
