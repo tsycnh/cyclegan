@@ -52,10 +52,10 @@ class CycleGAN():
         self.df = 64
 
         # Loss weights
-        self.lambda_cycle = 5.0  # Cycle-consistency loss
-        self.lambda_id = 1  # Identity loss
+        self.lambda_cycle = 10.0  # Cycle-consistency loss
+        self.lambda_id = 0.0      # Identity loss
 
-        optimizer = Adam(0.0001, 0.5)
+        optimizer = Adam(0.0002, 0.5)
         # optimizer = keras.optimizers.RMSprop()
         # Build and compile the discriminators
         # 两个判别器，A和B
@@ -97,10 +97,10 @@ class CycleGAN():
         valid_A = self.d_A(fake_A)
         valid_B = self.d_B(fake_B)
 
-        self.combined = Model([img_A, img_B], [valid_A, valid_B, fake_B, fake_A, reconstr_A, reconstr_B])
-        self.combined.compile(loss=['mse', 'mse', 'kld', 'kld', 'mae', 'mae'],
-                              loss_weights=[1, 1, self.lambda_id, self.lambda_id, self.lambda_cycle, self.lambda_cycle],
-                              optimizer=optimizer)
+        self.combined = Model([img_A, img_B], [valid_A, valid_B, fake_B, fake_A,reconstr_A, reconstr_B])
+        self.combined.compile(loss=['mse', 'mse', 'mae', 'mae', 'mae', 'mae'],
+        loss_weights=[1, 1, self.lambda_id, self.lambda_id,self.lambda_cycle, self.lambda_cycle],
+        optimizer=optimizer)
 
         current_time = time.strftime('%Y-%m-%d %H_%M_%S', time.localtime())
         self.output_dir = './'+current_time
