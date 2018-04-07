@@ -30,6 +30,7 @@ def start_compare(method):
         allstr += '\n'
         print('')
     return allstr
+
 if __name__ == "__main__":
 
     images_hist = []
