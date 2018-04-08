@@ -253,7 +253,8 @@ class CycleGAN():
             if epoch % save_interval == 0:
                 self.epoch = epoch
                 self.save_imgs(epoch)
-                self.g_AB.save(self.saved_model_dir+'/model_epoch_' + str(epoch) + '.h5')
+                self.g_AB.save(self.saved_model_dir+'/model_gAB_epoch_' + str(epoch) + '.h5')
+                self.combined.save(self.saved_model_dir+'/model_combined_epoch_'+str(epoch)+'.h5')
                 create_new_empty_dir(self.predicts_dir+'/epoch_%d/' % (self.epoch))
                 self.predicts_from_A_to_B()
             self.save_loss_img(epoch)
