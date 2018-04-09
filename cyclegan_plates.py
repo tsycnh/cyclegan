@@ -24,10 +24,8 @@ import shutil
 import matplotlib.pyplot as plt
 import json
 import cv2
-def create_new_empty_dir(dir):
-    if os.path.exists(dir):
-        shutil.rmtree(dir)
-    os.makedirs(dir)
+import utils
+
 
 
 class CycleGAN():
@@ -106,9 +104,9 @@ class CycleGAN():
         self.output_dir = './'+current_time
         self.saved_model_dir = self.output_dir+'/saved_model'
         self.predicts_dir = self.output_dir+'/predict_result'
-        create_new_empty_dir(self.output_dir)
-        create_new_empty_dir(self.saved_model_dir)
-        create_new_empty_dir(self.predicts_dir)
+        utils.create_new_empty_dir(self.output_dir)
+        utils.create_new_empty_dir(self.saved_model_dir)
+        utils.create_new_empty_dir(self.predicts_dir)
         self.save_structure()
         self.g_losses = []
         self.d_losses = []
@@ -253,9 +251,9 @@ class CycleGAN():
             if epoch % save_interval == 0:
                 self.epoch = epoch
                 self.save_imgs(epoch)
-                self.g_AB.save(self.saved_model_dir+'/model_gAB_epoch_' + str(epoch) + '.h5')
-                self.combined.save(self.saved_model_dir+'/model_combined_epoch_'+str(epoch)+'.h5')
-                create_new_empty_dir(self.predicts_dir+'/epoch_%d/' % (self.epoch))
+                self.g_AB.save(self.saved_model_dir+'/model_gAB_epoch_' + utils.fixed_length(epoch,5) + '.h5')
+                self.combined.save(self.saved_model_dir+'/model_combined_epoch_'+utils.fixed_length(epoch,5)+'.h5')
+                utils.create_new_empty_dir(self.predicts_dir+'/epoch_%d/' % (self.epoch))
                 self.predicts_from_A_to_B()
             self.save_loss_img(epoch)
             self.save_loss()
@@ -335,14 +333,14 @@ class CycleGAN():
                 fig.savefig(self.predicts_dir+'/epoch_%d/%d.png' % (self.epoch, ai + 1))
                 candidates = []
 
-    def translate(self, model_path=None,total_num = 1):
+    def translate(self, model_path=None,total_num = 1,output_dir='./translation'):
         # np.random.seed(0)
         if model_path != None:
             self.g_AB.load_weights(model_path)
         imgs_A = self.data_loader.load_data(domain='A', batch_size=total_num)
         fake_B = self.g_AB.predict(imgs_A)
-        translation_dir = './translation'
-        create_new_empty_dir(translation_dir)
+        translation_dir = output_dir
+        utils.create_new_empty_dir(translation_dir)
         names = self.data_loader.get_imgs_name()
         for i,img in enumerate(fake_B):
             print('img:',i)
@@ -373,5 +371,6 @@ class CycleGAN():
         file.write(str)
         file.close()
 if __name__ == '__main__':
+    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
     gan = CycleGAN('/plates/单独训练集/Sc')
     gan.train(epochs=5001, batch_size=2, save_interval=100)
