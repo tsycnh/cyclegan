@@ -29,7 +29,7 @@ import utils
 
 
 class CycleGAN():
-    def __init__(self,dataset_name):
+    def __init__(self,dataset_name,appendix=''):
         # Input shape
         self.img_rows = 128
         self.img_cols = 128
@@ -102,6 +102,8 @@ class CycleGAN():
 
         current_time = time.strftime('%Y-%m-%d %H_%M_%S', time.localtime())
         self.output_dir = './'+current_time
+        if appendix != '':
+            self.output_dir+='_'+appendix
         self.saved_model_dir = self.output_dir+'/saved_model'
         self.predicts_dir = self.output_dir+'/predict_result'
         utils.create_new_empty_dir(self.output_dir)
@@ -372,5 +374,5 @@ class CycleGAN():
         file.close()
 if __name__ == '__main__':
     os.environ["CUDA_VISIBLE_DEVICES"] = "1"
-    gan = CycleGAN('/plates/单独训练集/Sc')
-    gan.train(epochs=5001, batch_size=2, save_interval=100)
+    gan = CycleGAN('/plates/单独训练集_B_plates_new/Sc',appendix='Sc_new_plates')
+    gan.train(epochs=2001, batch_size=2, save_interval=100)
