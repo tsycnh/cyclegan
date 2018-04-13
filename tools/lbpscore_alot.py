@@ -20,9 +20,9 @@ b = utils.get_dir_filelist_by_extension(source_folder,ext='jpg')
 
 all_lbp_scores = []
 k = 1
-gan = CycleGAN(dataset_name='/plates/单独训练集/Sc')
 
 for model in a :
+    gan = CycleGAN(dataset_name='/plates/单独训练集/Sc')
     gan.translate(model_path=model,total_num=len(b),output_dir=target_folder)
     ls = LBP_Score(folder_A=source_folder,folder_B=target_folder)
     s = ls.get_lbp_score()
@@ -37,5 +37,5 @@ f.write(tmp)
 f.close()
 
 plt.plot(all_lbp_scores)
-plt.show()
+# plt.show()
 plt.savefig(gan.output_dir+'/lbp_score.png')

@@ -29,7 +29,7 @@ import utils
 
 
 class CycleGAN():
-    def __init__(self,dataset_name,appendix=''):
+    def __init__(self,dataset_name,appendix='',lamb=(1,10,0)):
         # Input shape
         self.img_rows = 128
         self.img_cols = 128
@@ -50,8 +50,9 @@ class CycleGAN():
         self.df = 64
 
         # Loss weights
-        self.lambda_cycle = 10.0  # Cycle-consistency loss
-        self.lambda_id = 0.0      # Identity loss
+        self.lambda_gan = lamb[0]
+        self.lambda_cycle = lamb[1]  # Cycle-consistency loss
+        self.lambda_id = lamb[2]     # Identity loss
 
         optimizer = Adam(0.0002, 0.5)
         # optimizer = keras.optimizers.RMSprop()
@@ -97,7 +98,7 @@ class CycleGAN():
 
         self.combined = Model([img_A, img_B], [valid_A, valid_B, fake_B, fake_A,reconstr_A, reconstr_B])
         self.combined.compile(loss=['mse', 'mse', 'mae', 'mae', 'mae', 'mae'],
-        loss_weights=[1, 1, self.lambda_id, self.lambda_id,self.lambda_cycle, self.lambda_cycle],
+        loss_weights=[self.lambda_gan, self.lambda_gan, self.lambda_id, self.lambda_id,self.lambda_cycle, self.lambda_cycle],
         optimizer=optimizer)
 
         current_time = time.strftime('%Y-%m-%d %H_%M_%S', time.localtime())
