@@ -11,6 +11,7 @@ class DataLoader():
         self.img_paths = []
 
     def load_data(self, domain, batch_size=1, is_testing=False):
+        self.img_paths = []
         data_type = "train%s" % domain if not is_testing else "test%s" % domain
         path = glob('./datasets/%s/%s/*' % (self.dataset_name, data_type))
         random.shuffle(path)
