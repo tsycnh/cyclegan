@@ -37,7 +37,7 @@ def fixed_length(num,length):
         a = '0'+a
     return a
 
-def view_pics(pics,cols,titles):
+def view_pics(pics,cols,titles,output_full_path='tmp.png'):
     #pics应为一维数组,每个为单通道灰度图
     c = cols
     r = int(np.ceil(len(pics)/c))
@@ -63,7 +63,7 @@ def view_pics(pics,cols,titles):
             axs[i, j].axis('off')
             cnt += 1
         print('子图已绘制%d/%d行'%(i,r))
-    fig.savefig('tmp.png')
+    fig.savefig(output_full_path)
     plt.close()
 if __name__ == '__main__':
     d = get_dir_subdir('2018-04-25 10_29_02/predicts',True)

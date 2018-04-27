@@ -13,11 +13,20 @@ import utils
 '''
 
 
-def step1():
-    kind = 'Sc'
-    gan = CycleGAN('/plates/单独训练集/' + kind)
+def step1(path):
+    kinds = ['Cr','In','Pa','PS','RS','Sc']
+    sets = ['new_plates','aluminum']
+    current_kind = ''
+    current_set = ''
+    for kind in kinds:
+        if kind in path: current_kind = kind;break
+    for se in sets:
+        if se in path: current_set = se;break
+    print(current_set,current_kind)
+    # exit()
+    gan = CycleGAN('/plates/单独训练集_B_%s/%s' %(current_set,current_kind))
 
-    model_files_list = utils.get_dir_filelist_by_extension('2018-03-27 09_11_11 Sc/saved_model', ext='h5',
+    model_files_list = utils.get_dir_filelist_by_extension(path+'/saved_model', ext='h5',
                                                            with_parent_path=True)
     model_files_list.sort()
     for model_file in model_files_list:
@@ -45,7 +54,7 @@ def step2(tmpfile):
 
     b = utils.get_dir_filelist_by_extension(d[0],'jpg')
     a = len(b)
-    utils.view_pics(pics,a,b)
+    utils.view_pics(pics,a,b,output_full_path=tmpfile+'.png')
 
 if __name__ == "__main__":
     # 控制显卡可见性
@@ -53,9 +62,13 @@ if __name__ == "__main__":
 
     # cls = ['Cr','In','Pa','PS','RS','Sc']
     # cls = ['Cr']
+    f = open('list.txt')
+    txt = f.readlines()
+    f.close()
 
     # task1: 读取saved_model下面的json模型，以及参数文件。输入一张图像，实现翻译效果，并显示图像 Done
-    step1()
+    for t in txt:
+        step1(t)
 
     # task2:拼图
     step2('./tmp.txt')
