@@ -27,9 +27,13 @@ def step1(path):
     gan = CycleGAN('/plates/单独训练集_B_%s/%s' %(current_set,current_kind))
 
     model_files_list = utils.get_dir_filelist_by_extension(path+'/saved_model', ext='h5',
-                                                           with_parent_path=True)
-    model_files_list.sort()
-    for model_file in model_files_list:
+                                           with_parent_path=True)
+    mflist = []
+    for mf in model_files_list:
+        if 'gAB' in mf:
+            mflist.append(mf)
+    mflist.sort()
+    for model_file in mflist:
         # np.random.seed(0)
         random.seed(0)
         a = model_file.split('.')[0].split('/')[-1].split('_')[-1]
