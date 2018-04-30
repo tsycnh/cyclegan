@@ -63,7 +63,7 @@ if __name__ == "__main__":
     # cls = ['Cr','In','Pa','PS','RS','Sc']
     # cls = ['Cr']
     f = open('list.txt')
-    txt = f.readlines()
+    txt = f.read().split('\n')
     f.close()
 
     # task1: 读取saved_model下面的json模型，以及参数文件。输入一张图像，实现翻译效果，并显示图像 Done
