@@ -3,6 +3,7 @@ import scipy.misc
 from glob import glob
 import numpy as np
 import random
+import os
 
 class DataLoader():
     def __init__(self, dataset_name, img_res=(128, 128)):
@@ -52,6 +53,7 @@ class DataLoader():
         img_names =self.img_paths
         for i,path in enumerate(img_names):
             print(path)
-            b = path.split('/')
-            img_names[i] = b[-1]
+            # b = path.split('/')# TODO:change to adapt windows path
+            # img_names[i] = b[-1]
+            img_names[i] = os.path.basename(path)
         return img_names
