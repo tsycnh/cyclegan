@@ -22,6 +22,7 @@ def step1(path):
         if kind in path: current_kind = kind;break
     for se in sets:
         if se in path: current_set = se;break
+    print('path:',path)
     print(current_set,current_kind)
     # exit()
     gan = CycleGAN('/plates/单独训练集_B_%s/%s' %(current_set,current_kind))
@@ -58,7 +59,7 @@ def step2(tmpfile):
 
     b = utils.get_dir_filelist_by_extension(d[0],'jpg')
     a = len(b)
-    utils.view_pics(pics,a,b,output_full_path=tmpfile+'.png')
+    utils.view_pics(pics,a,b,output_full_path='./compareresult/'+working_dir.replace('./','').replace(' ','-')+'.png')
 
 if __name__ == "__main__":
     # 控制显卡可见性
@@ -69,11 +70,12 @@ if __name__ == "__main__":
     f = open('list.txt')
     txt = f.read().split('\n')
     f.close()
+    utils.create_new_empty_dir('./compareresult')
 
     # task1: 读取saved_model下面的json模型，以及参数文件。输入一张图像，实现翻译效果，并显示图像 Done
     for t in txt:
         step1(t)
 
     # task2:拼图
-    step2('./tmp.txt')
+        step2('./tmp.txt')
 
